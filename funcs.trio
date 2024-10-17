@@ -1,0 +1,264 @@
+name:xeto_findSpecByStringName
+func
+xetoFunc
+src:
+  (stringQName, lib: "mm.lora") => do
+  
+    theSpecs: specLib(lib).specs()
+                          .find(r=> r["id"].toStr() == stringQName)
+  end
+---
+name:xeto_csvImport
+func
+src:
+  (fileUri: `io/builder_import_specs_composite.csv`) => do
+    
+    csvData: ioReadCsv(fileUri)
+    
+    refCols: csvData.colNames().findAll(c=> c.contains("Ref"))
+    results: {}.toGrid()
+    
+    csvData.map(r=> do 
+      thisIndex: r->index.parseNumber()
+      
+      thisSpec: r->specFqn.parseRef().spec()
+      
+      importRec: {
+        navName: r["navName"],
+        csvIndex: thisIndex
+      }
+      
+      //parse "fooRef" columns into actual ref pointers
+      refItems: refCols.map(rc=> do
+        refIndex: try r[rc].parseNumber(false) catch null
+        if(refIndex != null) do
+          refItem: read(csvIndex == refIndex,false)
+          if(refItem != null) importRec = importRec.set(rc, refItem["id"])
+        end
+        else null
+        rc
+      end)
+      
+      //instantiate this row as a graph
+      //if it has children, both the main spec and children will be instantiated
+      //children will have their index offset to maintain unique references
+      thisSpec.instantiate({graph})
+        .map((specRow,i) => do
+          if(i == 0) specRow = specRow.merge(importRec)
+  
+          specIndex: if (specRow.has("point")) (1000 * thisIndex) + i
+                     else thisIndex
+          specRow = specRow.set("csvIndex", specIndex)
+          
+          //hardcoded logic to deal with some rec types using dis vs navName
+          try specRow = specRow.remove("dis") catch null
+          if(specRow.has("site") or specRow.has("floor")) specRow = specRow.set("dis", specRow["navName"]).remove("navName")
+          
+          //don't re-add if record with this index already exists
+          if(read(csvIndex == specIndex, false) == null) diff(null, specRow, {add}).commit()
+          
+          //add this row to the results
+          results = results.addRow(specRow)
+          specRow
+        end)
+        
+      r
+    end)
+    
+    return results
+    
+  end
+---
+name:mqtt_saveSamplePayload
+func
+mqttFunc
+src:
+  //task to observe incoming mqtt payload and save to a sample fild path
+  //preset 'samplePath' is from incoming TheThingsNetwork payload
+  (obs: {}, samplePath: ["uplink_message","version_ids"], fileUri: `io/mqttSamplePayload.json`) => do
+  
+    payload: obs->payload.ioReadJson({safeNames})
+    thisTopic: obs->topic
+    obsTs: obs->ts
+  
+    //iterate samplePath list and get subsequent fields
+    samplePath.each(item=> payload = payload[item])
+  
+    ioWriteJson(payload, fileUri)
+  
+    logInfo("mqtt", payload.toStr())
+  
+  end
+---
+name:xeto_findSpecsByPropName
+func
+xetoFunc
+src:
+  (libName: "lib:mm.elsys", propertyName: "modelNumber") => do
+  
+    theSpecs: specLibs().find(sl=> sl["id"] == parseRef(libName)).specs()
+                          .findAll(s=> not s.has("abstract"))
+                          .map(r=> r.set(propertyName, r.instantiate()[propertyName]))
+                          .findAll(filterToFunc(parseFilter(propertyName)))
+                          .toGrid()
+  end
+---
+name:xeto_samplePayload
+func
+src:
+  () => do
+    obs: {
+       payload: {"end_device_ids":{"device_id":"eui-a81758fffe05b620","application_ids":{"application_id":"home-monitoring-01"},"dev_eui":"A81758FFFE05B620","join_eui":"0000000000000000","dev_addr":"27FD768E"},"correlation_ids":["gs:uplink:01JA4GD9Q3JPV0TKWTM59M0ZWP"],"received_at":"2024-10-14T03:16:07.727642100Z","uplink_message":{"session_key_id":"AY/QUq0lljbUnln8/ixsmg==","f_port":5,"f_cnt":38964,"frm_payload":"AQDoAjIHDj8UAA9ULw==","decoded_payload":{"humidity":50,"pressure":1004.591,"temperature":23.2,"vdd":3647},"rx_metadata":[{"gateway_ids":{"gateway_id":"eui-58a0cbfffe802c9a","eui":"58A0CBFFFE802C9A"},"time":"2024-10-14T03:16:07.391299009Z","timestamp":804409529,"rssi":-42,"channel_rssi":-42,"snr":10.5,"uplink_token":"CiIKIAoUZXVpLTU4YTBjYmZmZmU4MDJjOWESCFigy//+gCyaELmhyf8CGgwI95myuAYQhtWp+QEgqKWt1LTnDw==","received_at":"2024-10-14T03:16:07.454501583Z"}],"settings":{"data_rate":{"lora":{"bandwidth":500000,"spreading_factor":8,"coding_rate":"4/5"}},"frequency":"903000000","timestamp":804409529,"time":"2024-10-14T03:16:07.391299009Z"},"received_at":"2024-10-14T03:16:07.523693821Z","consumed_airtime":"0.028288s","packet_error_rate":0.6226415,"version_ids":{"brand_id":"elsys","model_id":"elt-2","hardware_version":"1.0","firmware_version":"1.0","band_id":"US_902_928"},"network_ids":{"net_id":"000013","ns_id":"EC656E0000102F4A","tenant_id":"home-automation","cluster_id":"nam1","cluster_address":"nam1.cloud.thethings.industries","tenant_address":"home-automation.nam1.cloud.thethings.industries"}}}
+      ,ts: now().toTimeZone("New_York")
+      ,topic: "testing"
+    }
+    
+    myTask: readById(@p:practicalXeto:r:2e9f0e9c-10069155)
+    
+    taskSend(myTask, obs)
+    
+  end
+---
+name:clearBuilder
+func
+src:
+  () => do
+    readAll(point or equip or space or floor or site).recDelete()
+  end
+---
+name:mqtt_pointPrepDict
+func
+mqttFunc
+src:
+  (mqttItem) => do
+    {cur, his, hisCollectCov
+    ,disMacro: "\$equipRef \$navName"
+    ,kind:"Number"
+    ,tz:"New_York"
+    }
+  
+  end
+---
+name:mqtt_parseTTN
+func
+mqttFunc
+src:
+  (obs) => do
+    payload: try obs->payload.ioReadJson({safeNames}) catch obs->payload
+    thisTopic: obs->topic
+    obsTs: obs->ts.toTimeZone("New_York")
+  
+    thisDevice: read(device and mqttTopic == thisTopic, false)
+  
+    try  new_data: payload->uplink_message->decoded_payload
+    catch return null
+  
+    if(thisDevice != null) do
+  
+      thisDevicePoints: thisDevice.toPoints().filter(mqttName)
+  
+      thisDevicePoints.map(p=> do
+  
+        checkConversion: p["curConvert"]
+  
+        newVal: new_data[p->mqttName]
+  
+        if(newVal != null) do
+          if(checkConversion != null) newVal = pointConvert(null, checkConversion, new_data[p->mqttName])
+  
+          try do
+            hisWrite({ts: obsTs, val: newVal}, p, {noWarn})
+            diff(p, {curVal: newVal}, {transient}).commit()
+            logInfo("mqtt", "wrote val: " + newVal + " to point: " + p.dis())
+          end
+          catch(err) do
+            logInfo("mqtt", "failed to write val: " + newVal + " to point: " + p.dis())
+            logInfo("mqtt", err.toStr())
+          end
+        end
+        else logInfo("mqtt", "no value found for " + p.dis())
+        p
+      end)
+  
+    end
+  
+  end
+---
+name:mqtt_onboardTTN
+func
+mqttFunc
+src:
+  (obs) => do
+    //try catch will allow us to read in a normal dict that has already been parsed from json for testing
+    payload: try obs->payload.ioReadJson({safeNames}) catch obs->payload
+    thisTopic: obs->topic
+    obsTs: obs->ts
+  
+    thisDevice: read(device and mqttTopic == thisTopic, false)
+  
+    new_data: payload->uplink_message->version_ids
+  
+    thisModel: new_data["model_id"].trim()
+  
+    logInfo("mqtt", "model:" + thisModel)
+  
+    thisEui: payload->uplink_message->rx_metadata[0]->gateway_ids->eui
+  
+    logInfo("mqtt", "eui:" + thisEui)
+    logInfo("mqtt", "topic:" + thisTopic)
+    
+    modelSpecs: xeto_findSpecsByPropName("lib:mm.elsys", "modelNumber")
+    thisSpec: modelSpecs.find(m => m->modelNumber == thisModel)
+  
+    thisQname: thisSpec["id"]
+  
+    logInfo("mqtt", "spec:" + thisSpec.toStr())
+    logInfo("mqtt", "spec:" + thisQname)
+  
+    existingRec: read(modelNumber == thisModel and mqttTopic == thisTopic,false)
+  
+    newRecs: null
+  
+    if(existingRec == null) do
+  
+      newRecs = spec(thisQname).instantiate({graph})
+                               .map(r=> do
+                                 if(r["device"] != null) r = r.set("mqttTopic", thisTopic)
+                                                      .set("serialNumber", "test")
+                                                      .set("spec", thisQname)
+                                                      .set("navName", "elsysTest")
+                                                      .set("disMacro", "\$spaceRef \$navName")
+                                                      .set("siteRef", read(site)->id)
+                                                      .set("floorRef", read(floor)->id)
+                                 else if(r["point"] != null) r = r.merge({cur, his, hisCollectCov})
+                                                                  .set("mqttConnRef", read(mqttConn)->id)
+                                                                  .set("tz", "New_York")
+                                 diff(null, r, {add}).commit()
+                               end)
+                               
+     projSync()
+    end else null //this device already exists, don't add to folio, add a function to parse + sync his data here
+    
+    mqtt_parseTTN(obs)
+    
+    //if(newRecs != null) ioWriteTrio(newRecs, `io/newRecs.trio`)
+  
+    logInfo("mqtt", "obs complete")
+  
+  end
+---
+name:mqtt_obsTest
+func
+mqttFunc
+src:
+  (obs: {}) => do
+  
+    payload: obs->payload.ioReadJson({safeNames})
+    thisTopic: obs->topic
+    obsTs: obs->ts
+  
+    payload = payload->uplink_message->version_ids
+  
+    logInfo("mqtt", payload.toStr())
+  
+  end
