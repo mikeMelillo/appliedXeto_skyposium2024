@@ -1,0 +1,47 @@
+LoraWanEndDevice: ph::Device <abstract> {
+  lora
+  loraEui: Str?
+  loraWanVersion: Str?
+  appEui: Str?
+  devEui: Str?
+  appKey: Str?
+  deviceAddress: Str?
+}
+
+ElsysStat: Thermostat & LoraWanEndDevice <abstract> {
+  manufacturer: "Elsys"
+  modelNumber: Str
+}
+
+ErsEyeStat: ElsysStat {
+  modelNumber: "ers-eye"
+  points: {
+    LoraZATS
+    LoraZAHS
+    LoraZOCS
+    LoraZMS
+    LoraZLS
+  }
+}
+
+ErsElt2Stat: ElsysStat {
+  modelNumber: "elt-2"
+  points: {
+    LoraOPS
+    LoraOATS
+    LoraOAHS
+    LoraEVS
+  }
+}
+
+ErsCo2Stat: ElsysStat {
+  modelNumber: "ers-co2"
+  points: {
+    LoraZATS
+    LoraZAHS
+    LoraZCO2S
+    LoraZOCS
+    LoraZMS
+    LoraZLS
+  }
+}

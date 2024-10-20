@@ -1,0 +1,28 @@
+pragma: Lib <
+doc: "Mike Melillo TTN MQTT Specs"
+version: "0.0.1"
+depends: {
+    {
+    lib: "sys", versions: "0.1.x" 
+  }
+    {
+    lib: "ph", versions: "0.1.x" 
+  }
+    {
+    lib: "ph.points", versions: "0.1.x" 
+  }
+    {
+    lib: "ph.equips", versions: "0.1.x" 
+  }
+  {
+    lib: "mm.pxeto", versions: "0.0.x" 
+  }
+}
+
+org: {
+  dis: "Mike Melillo - Albireo Energy"
+  uri: "TODO"
+}
+
+>
+ 

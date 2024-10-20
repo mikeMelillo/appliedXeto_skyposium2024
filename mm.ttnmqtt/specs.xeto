@@ -1,0 +1,46 @@
+MqttPoint: Point {
+  mqttPoint
+  mqttConnRef: Ref
+  mqttName: Str
+}
+
+LoraZATS: MqttPoint & ZoneAirTempSensor {
+  mqttName: "temperature"
+  curConvert: "* 1.8 + 32"
+}
+
+LoraZAHS: MqttPoint & ZoneAirHumiditySensor {
+  mqttName: "humidity"
+}
+
+LoraZOCS: MqttPoint & ZoneOccSensor {
+  mqttName: "occupancy"
+}
+
+LoraZMS: MqttPoint & ZoneMotionSensor {
+  mqttName: "motion"
+}
+
+LoraZLS: MqttPoint & ZoneLightSensor {
+  mqttName: "light"
+}
+
+LoraZCO2S: MqttPoint & ZoneCo2Sensor {
+  mqttName: "co2"
+}
+
+LoraOPS: MqttPoint & OutsideAirPressureSensor {
+  mqttName: "pressure"
+}
+
+LoraOATS: MqttPoint & OutsideAirTempSensor {
+  mqttName: "temperature"
+}
+
+LoraOAHS: MqttPoint & OutsideAirHumiditySensor {
+  mqttName: "humidity"
+}
+
+LoraEVS: MqttPoint & ElecVoltageSensor {
+  mqttName: "volts"
+}

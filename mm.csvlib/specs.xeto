@@ -1,0 +1,70 @@
+//"integrator" specs
+CsvEquip: ph::Equip <abstract> {
+  csvIndex: Number
+  disMacro: "\$floorRef - \$navName"
+}
+
+CsvPoint: ph::Point <abstract> {
+  csvIndex: Number
+  disMacro: "\$equipRef - \$navName"
+}
+
+//combine ph specs with integrator specs to make composite specs
+
+//ahu points
+CsvDAT: CsvPoint & ph.points::DischargeAirTempSensor {
+  navName: "DAT-S"
+}
+
+CsvRAT: CsvPoint & ph.points::ReturnAirTempSensor {
+  navName: "RAT-S"
+}
+
+CsvDAFRS: CsvPoint & ph.points::DischargeFanEnableSensor{
+  navName: "DAF-S"
+}
+
+CsvCHWVC: CsvPoint & ph.points::ChilledWaterValveCmd {
+  navName: "CHWV-O"
+}
+
+CsvAhu: CsvEquip & ph::Ahu {
+  points: {
+    CsvDAT
+    CsvRAT
+    CsvDAFRS
+    CsvCHWVC
+  }
+}
+
+//vav points
+CsvZATS: CsvPoint & ph.points::ZoneAirTempSensor {
+  navName: "ZNT-S"
+}
+
+CsvZATSP: CsvPoint & ph.points::ZoneAirTempSp {
+  navName: "ZNT-SP"
+}
+
+CsvDAFS: CsvPoint & ph.points::DischargeAirFlowSensor {
+  navName: "DAF-S"
+}
+
+CsvDAFSP: CsvPoint & ph.points::DischargeAirFlowSp {
+  navName: "DAF-SP"
+}
+
+CsvDADC: CsvPoint & ph.points::DischargeDamperCmd {
+  navName: "DAD-O"
+}
+
+CsvVav: CsvEquip & ph::Vav {
+  airRef: Ref?
+  points: {
+    CsvZATS
+    CsvZATSP
+    CsvDAFS
+    CsvDAFSP
+    CsvDADC
+  }
+}

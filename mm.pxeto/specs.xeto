@@ -1,0 +1,56 @@
+// My spec documentation
+//MySpec : Dict {
+//}
+
+OccPoint : NumberPoint <abstract> {
+  occ
+  point
+}
+
+OccSensor: OccPoint {
+  sensor
+}
+
+ZoneOccSensor: OccSensor {
+  zone
+}
+
+MotionPoint : NumberPoint <abstract> {
+  motion
+  point
+}
+
+MotionSensor: MotionPoint {
+  sensor
+}
+
+ZoneMotionSensor: MotionSensor {
+  zone
+}
+
+LightPoint : NumberPoint <abstract> {
+  light
+  point
+}
+
+LightSensor: LightPoint {
+  sensor
+}
+
+ZoneLightSensor: LightSensor {
+  zone
+}
+
+OutsideAirPressureSensor: AirPressureSensor {
+  outside
+}
+
+OutsideAirHumiditySensor: AirHumiditySensor {
+  outside
+}
+
+ElecVoltageSensor: Sensor {
+  elec
+  voltage
+}
+
