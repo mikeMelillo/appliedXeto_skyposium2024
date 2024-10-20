@@ -9,6 +9,8 @@ The ppt presentation is presented here, but will also be available when SkyFound
 
 Feel free to use or extend this code as you see fit or reach out to me via email at mmelillo@albireoenergy.com with any questions or if you'd like to collaborate on extending this library. This repo in itself will remain as-is, but I'm open to the idea of a community project around speeding up the adoption of Xeto.
 
+**Note, this work was done with SkySpark rev 3.1.10, newer versions & updated versions of base xeto libs may cause conflicts**
+
 Utilizing the code in this repo
 ---
 
