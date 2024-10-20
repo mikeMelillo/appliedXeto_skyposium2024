@@ -65,7 +65,7 @@ Control flow
 Small disclaimer
 ---
 
-This code is provided as-is. It was purpose built for my home test-bench while I was initially learning how to use specs, and my hope is that the both the presentation and this repo will help others begin to experiment and incorporate Xeto into their Haystack toolkit.
+This code is provided as-is, see LICENSE for further details. It was purpose built for my home test-bench while I was initially learning how to use specs, and my hope is that the both the presentation and the source code will help others begin to experiment and incorporate Xeto into their toolkit.
 
 There are several hard-coded bits (like how the device is committed ref'd to a site & space), that I plan to revisit before incorporating this in any production environment. This will probably involve looking at Things Network codecs and investigating adding meta data on that server that can be transferred via the MQTT Broker. There is similar work we are doing on our (Albireo Energy's) hosted services for both SkySpark and Niagara to leverage LoRaWAN & MQTT to get observability in hard to manage places (both physical and network).
 
@@ -80,6 +80,6 @@ Other links
 
 [Xeto Github](https://github.com/Project-Haystack/xeto)
 
-[Albireo Energy](https://www.albireoenergy.com/)
+If you're interested to learn more about the work we do, visit [Albireo Energy](https://www.albireoenergy.com/) or reach out to me.
 
 
