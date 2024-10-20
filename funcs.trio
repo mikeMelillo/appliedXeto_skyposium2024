@@ -112,8 +112,9 @@ src:
       ,ts: now().toTimeZone("New_York")
       ,topic: "testing"
     }
-    
-    myTask: readById(@p:practicalXeto:r:2e9f0e9c-10069155)
+
+    //you may need to modify this to point to your active obsMqtt task
+    myTask: read(task)
     
     taskSend(myTask, obs)
     
